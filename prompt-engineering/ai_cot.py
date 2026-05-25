@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # INITIALIZE THE SYSTEM PROMPT
-f = open("one-shot-prompt.txt","r")
+f = open("chain_of_thought.txt","r")
 system_prompt = f.read()
 f.close()
 
@@ -17,9 +17,12 @@ user_query = input("> ")
 
 # CONNECT TO AI ENDPOINT
 response = client.responses.create(
-    model="gpt-5.4-mini",
+    model="gpt-5.5",
+    reasoning={"effort": "medium"},
     instructions=system_prompt,
     input=user_query
 )
 
+print(response.output_text)
+print("="*40)
 print(response)

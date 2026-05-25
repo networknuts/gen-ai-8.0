@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # INITIALIZE THE SYSTEM PROMPT
-f = open("one-shot-prompt.txt","r")
+f = open("few-shot-prompt.txt","r")
 system_prompt = f.read()
 f.close()
 
@@ -22,4 +22,4 @@ response = client.responses.create(
     input=user_query
 )
 
-print(response)
+print(response.output_text)
