@@ -1,0 +1,8 @@
+The function requires user_id as an argument, it takes the user_id and provides
+a dict output of the ecommerce order of the particular user.
+
+The output of the dict includes the following:
+user_id 
+item name 
+delivery data 
+status of the delivery 
