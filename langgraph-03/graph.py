@@ -3,6 +3,8 @@ from langgraph.graph import StateGraph, END
 from langchain_openai import ChatOpenAI 
 from typing import TypedDict
 import json 
+from pymongo import MongoClient
+from langgraph.checkpoint.mongodb import MongoDBSaver
 
 # SETUP THE ENVIRONMENT
 load_dotenv()
@@ -10,6 +12,9 @@ llm_developer = ChatOpenAI(model="gpt-5.4-mini")
 llm_qa = ChatOpenAI(model="gpt-5.5")
 
 MAX_RETRIES = 3
+
+client = MongoClient("mongodb://localhost:27017")
+memory = MongoDBSaver(client)
 
 # DEFINE YOUR STATE
 
@@ -119,23 +124,38 @@ graph.add_edge("approved_node",END)
 graph.add_edge("failed_node",END)
 graph.add_edge("retry","developer")
 
-app = graph.compile()
+app = graph.compile(checkpointer=memory)
 
-# ASK FOR USER INPUT
-user_input = input("Enter NodeJS App Description:\n")
+# UNIQUE IDENTIFIERS
 
-result = app.invoke({
-    "user_request": user_input, 
-    "code": "",
-    "rating": 0,
-    "feedback": "",
-    "retries": 0,
-    "status": "running"
-})
+thread_id = "2"
+user_id = "2"
 
-print("\nFINAL OUTPUT\n")
-print(f"Code: {result['code']}")
-print(f"Feedback: {result['feedback']}")
-print(f"Rating: {result['rating']}")
-print(f"Retries: {result['retries']}")
-print(f"Status: {result['status']}")
+# CHECK FOR EXISTING EXECUTION
+
+existing = memory.get({"configurable": {"thread_id":thread_id,"user_id": user_id }})
+
+try:
+    if existing:
+        print("RESUMING FROM CHECKPOINT")
+        result = app.invoke({},config={"configurable": {"thread_id":thread_id,"user_id": user_id }})
+    else:
+        # ASK FOR USER INPUT
+        user_input = input("Enter NodeJS App Description:\n")
+        result = app.invoke({
+            "user_request": user_input, 
+            "code": "",
+            "rating": 0,
+            "feedback": "",
+            "retries": 0,
+            "status": "running"
+        },config={"configurable": {"thread_id":thread_id,"user_id": user_id }})
+
+    print("\nFINAL OUTPUT\n")
+    print(f"Code: {result['code']}")
+    print(f"Feedback: {result['feedback']}")
+    print(f"Rating: {result['rating']}")
+    print(f"Retries: {result['retries']}")
+    print(f"Status: {result['status']}")
+except Exception as e:
+    print(f"Error: {e}")
