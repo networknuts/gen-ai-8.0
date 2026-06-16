@@ -128,17 +128,18 @@ app = graph.compile(checkpointer=memory)
 
 # UNIQUE IDENTIFIERS
 
-thread_id = "2"
 user_id = "2"
+session_id = "1"
 
+thread_id = f"{user_id}:{session_id}"
 # CHECK FOR EXISTING EXECUTION
 
-existing = memory.get({"configurable": {"thread_id":thread_id,"user_id": user_id }})
+existing = memory.get({"configurable": {"thread_id":thread_id }})
 
 try:
     if existing:
         print("RESUMING FROM CHECKPOINT")
-        result = app.invoke({},config={"configurable": {"thread_id":thread_id,"user_id": user_id }})
+        result = app.invoke({},config={"configurable": {"thread_id":thread_id }})
     else:
         # ASK FOR USER INPUT
         user_input = input("Enter NodeJS App Description:\n")
@@ -149,7 +150,7 @@ try:
             "feedback": "",
             "retries": 0,
             "status": "running"
-        },config={"configurable": {"thread_id":thread_id,"user_id": user_id }})
+        },config={"configurable": {"thread_id":thread_id }})
 
     print("\nFINAL OUTPUT\n")
     print(f"Code: {result['code']}")
